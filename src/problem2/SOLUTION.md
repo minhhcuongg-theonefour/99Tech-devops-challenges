@@ -4,7 +4,7 @@
 
 ## Overview Diagram
 
-![Diagram Architecture](diagram.png)
+[Diagram Architecture](architecture-diagram.png)
 
 ---
 
