@@ -94,9 +94,21 @@
   - Add more AZs (e.g., `us-east-1c`, `us-east-1d`) for Lambda, ElastiCache, and Aurora to distribute load and enhance fault tolerance.
   - **Impact**: Reduces risk of AZ failure, increases capacity for Lambda invocations.
 
-- **Lambda Concurrency Scaling**:
-  - Current: 50 concurrent executions for 500 rps (~10ms/invocation).
-  - Scale to 1,000 concurrent executions for 10,000 rps by setting reserved concurrency and monitoring throttling.
+- **Replace Lambda with EKS for Compute**:
+  - **Current**: Lambda handles compute (Order Processor, Risk Checker, Matching Engine, Market Data Processor, Trade Recorder) with 50 concurrent executions for 500 rps (~10ms/invocation).
+  - **Scaling with EKS**: If the application grows too large (e.g., 50,000 rps), replace Lambda with Amazon EKS to run containerized microservices (e.g., using Kubernetes pods for each component).
+    - **Implementation**:
+      - Deploy microservices (Order Processor, Risk Checker, etc.) as containers in EKS clusters across multiple AZs.
+      - Use EKS auto-scaling (Horizontal Pod Autoscaler) to scale pods based on CPU/memory usage (e.g., 500 pods for 50,000 rps, assuming ~100 rps/pod).
+      - Integrate EKS with EventBridge, SQS, SNS, and API Gateway using Interface Endpoints.
+    - **Benefits**:
+      - Greater control over compute resources (e.g., CPU, memory allocation).
+      - Handles higher throughput (e.g., 50,000 rps) with fine-tuned scaling.
+      - Supports complex workloads (e.g., stateful applications, custom runtime).
+    - **Trade-offs**:
+      - Increased latency: ~15-20ms per request (due to container overhead) vs. ~10-15ms with Lambda.
+      - Higher management overhead: Requires managing EKS clusters, Kubernetes configurations, and container images.
+      - Cost: ~$0.10/hour per EKS cluster, plus EC2 costs for worker nodes.
 
 - **ElastiCache and Aurora Sharding**:
   - Add read replicas for ElastiCache and Aurora in new AZs.
